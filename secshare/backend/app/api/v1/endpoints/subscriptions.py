@@ -36,8 +36,32 @@ def get_usage(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    from datetime import datetime, timezone
+
     usage = db.query(UsageStats).filter(UsageStats.user_id == current_user.id).first()
     subscription = db.query(Subscription).filter(Subscription.user_id == current_user.id).first()
+
+    # Reset usage on 1st of month (only for free plan)
+    is_free_plan = not subscription or subscription.plan == SubscriptionPlan.FREE
+    if is_free_plan and usage:
+        now = datetime.now(timezone.utc)
+        if now >= usage.period_end:
+            # Calculate new period (1st of current month to 1st of next month)
+            period_start = datetime(now.year, now.month, 1, 0, 0, 0, tzinfo=timezone.utc)
+
+            # Calculate first day of next month
+            if now.month == 12:
+                period_end = datetime(now.year + 1, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+            else:
+                period_end = datetime(now.year, now.month + 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+
+            # Reset counters
+            usage.secrets_created_this_month = 0
+            usage.secret_requests_this_month = 0
+            usage.attachment_bytes_this_month = 0
+            usage.period_start = period_start
+            usage.period_end = period_end
+            db.commit()
 
     if not subscription:
         limit_secrets = settings.FREE_SECRETS_PER_MONTH
