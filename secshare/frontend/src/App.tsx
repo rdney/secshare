@@ -7,6 +7,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import CreateSecret from './pages/CreateSecret'
 import ViewSecret from './pages/ViewSecret'
+import SecretLogs from './pages/SecretLogs'
 import Billing from './pages/Billing'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -22,6 +23,17 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/s/:secretId" element={<ViewSecret />} />
+
+        <Route element={<Layout />}>
+          <Route
+            path="/s/:secretId/logs"
+            element={
+              <PrivateRoute>
+                <SecretLogs />
+              </PrivateRoute>
+            }
+          />
+        </Route>
 
         <Route element={<Layout />}>
           <Route
