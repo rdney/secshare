@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "secshare-api"
+version = "1.0.0"
+description = "Secure secret sharing API"
+authors = ["SecShare Team"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.115.0"
+uvicorn = {extras = ["standard"], version = "^0.32.0"}
+sqlalchemy = "^2.0.35"
+alembic = "^1.14.0"
+psycopg2-binary = "^2.9.10"
+redis = "^5.2.0"
+pydantic = {extras = ["email"], version = "^2.10.0"}
+pydantic-settings = "^2.6.0"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+python-multipart = "^0.0.17"
+stripe = "^11.2.0"
+cryptography = "^44.0.0"
+python-dotenv = "^1.0.1"
+httpx = "^0.27.2"
+
+[tool.poetry.dev-dependencies]
+pytest = "^8.3.4"
+pytest-asyncio = "^0.24.0"
+black = "^24.10.0"
+ruff = "^0.8.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

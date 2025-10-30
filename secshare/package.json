@@ -1,0 +1,29 @@
+{
+  "name": "secshare",
+  "version": "1.0.0",
+  "description": "Secure secret sharing platform with subscription management",
+  "scripts": {
+    "setup": "./setup.sh",
+    "dev": "docker-compose up",
+    "dev:bg": "docker-compose up -d",
+    "stop": "docker-compose down",
+    "logs": "docker-compose logs -f",
+    "db:migrate": "docker-compose exec backend alembic revision --autogenerate -m",
+    "db:upgrade": "docker-compose exec backend alembic upgrade head",
+    "db:downgrade": "docker-compose exec backend alembic downgrade -1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/secshare"
+  },
+  "keywords": [
+    "security",
+    "secrets",
+    "encryption",
+    "saas",
+    "stripe"
+  ],
+  "author": "Your Name",
+  "license": "UNLICENSED",
+  "private": true
+}
