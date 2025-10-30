@@ -27,12 +27,12 @@ const plans = [
       '1 user',
       'Priority support',
     ],
-    priceId: 'pro',
+    priceId: 'price_0SNtmAqteWro1tLPF4fmkAt9',
   },
   {
     name: 'Team',
     price: '$49',
-    description: 'For teams collaborating securely',
+    description: 'Coming Soon - For teams collaborating securely',
     features: [
       '500 secrets per month',
       'Attachments up to 50MB',
@@ -41,7 +41,8 @@ const plans = [
       'Team management',
       'Priority support',
     ],
-    priceId: 'team',
+    priceId: null,
+    comingSoon: true,
   },
   {
     name: 'Enterprise',
@@ -65,11 +66,16 @@ export default function Billing() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchSubscription()
+    syncAndFetchSubscription()
   }, [])
 
-  const fetchSubscription = async () => {
+  const syncAndFetchSubscription = async () => {
     try {
+      // Sync from Stripe first (useful for local dev without webhooks)
+      await api.post('/subscriptions/sync').catch(() => {
+        // Ignore sync errors, just fetch what we have
+      })
+
       const { data } = await api.get('/subscriptions/me')
       setSubscription(data)
     } catch (error) {
@@ -83,7 +89,7 @@ export default function Billing() {
     try {
       const { data } = await api.post('/subscriptions/checkout', {
         price_id: priceId,
-        success_url: `${window.location.origin}/billing?success=true`,
+        success_url: `${window.location.origin}/dashboard`,
         cancel_url: `${window.location.origin}/billing`,
       })
       window.location.href = data.checkout_url
@@ -150,6 +156,10 @@ export default function Billing() {
                     className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200"
                   >
                     Manage Billing
+                  </button>
+                ) : (plan as any).comingSoon ? (
+                  <button disabled className="w-full bg-gray-100 text-gray-400 px-4 py-2 rounded-md cursor-not-allowed">
+                    Coming Soon
                   </button>
                 ) : plan.priceId ? (
                   <button

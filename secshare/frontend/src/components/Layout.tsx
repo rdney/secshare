@@ -1,10 +1,29 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/auth'
 import { Shield, LogOut, CreditCard } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import api from '../lib/api'
 
 export default function Layout() {
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
+  const [plan, setPlan] = useState<string>('Free')
+
+  useEffect(() => {
+    fetchPlan()
+  }, [])
+
+  const fetchPlan = async () => {
+    try {
+      // Sync from Stripe first (useful for local dev without webhooks)
+      await api.post('/subscriptions/sync').catch(() => {})
+
+      const { data } = await api.get('/subscriptions/me')
+      setPlan(data.plan)
+    } catch (error) {
+      // If error, keep default Free
+    }
+  }
 
   const handleLogout = () => {
     logout()
@@ -37,7 +56,10 @@ export default function Layout() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700">{user?.email}</span>
+              <div className="flex flex-col items-end">
+                <span className="text-sm text-gray-700">{user?.email}</span>
+                <span className="text-xs text-gray-500">{plan}</span>
+              </div>
               <Link
                 to="/billing"
                 className="text-gray-700 hover:text-gray-900"

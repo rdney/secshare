@@ -148,6 +148,52 @@ def create_portal_session(
         )
 
 
+@router.post("/sync")
+def sync_subscription(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Manually sync subscription from Stripe (useful for local dev)"""
+    subscription = db.query(Subscription).filter(
+        Subscription.user_id == current_user.id
+    ).first()
+
+    if not subscription or not subscription.stripe_customer_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No subscription found"
+        )
+
+    try:
+        # Get all subscriptions for this customer
+        stripe_subs = stripe.Subscription.list(customer=subscription.stripe_customer_id)
+
+        if stripe_subs.data:
+            # Get the first active subscription
+            stripe_sub = stripe_subs.data[0]
+            price_id = stripe_sub["items"]["data"][0]["price"]["id"]
+
+            # Update plan based on price ID
+            if price_id == settings.STRIPE_PRICE_ID_PRO:
+                subscription.plan = SubscriptionPlan.PRO
+            elif price_id == settings.STRIPE_PRICE_ID_TEAM:
+                subscription.plan = SubscriptionPlan.TEAM
+            else:
+                subscription.plan = SubscriptionPlan.FREE
+
+            subscription.stripe_subscription_id = stripe_sub.id
+            subscription.status = SubscriptionStatus.ACTIVE if stripe_sub.status == "active" else SubscriptionStatus.CANCELED
+            db.commit()
+
+        return subscription
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to sync subscription: {str(e)}"
+        )
+
+
 @router.post("/webhook")
 async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
     payload = await request.body()
@@ -174,6 +220,17 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
         if subscription:
             subscription.stripe_subscription_id = session["subscription"]
             subscription.status = SubscriptionStatus.ACTIVE
+
+            # Get the subscription details to determine the plan
+            stripe_sub = stripe.Subscription.retrieve(session["subscription"])
+            price_id = stripe_sub["items"]["data"][0]["price"]["id"]
+
+            # Update plan based on price ID
+            if price_id == settings.STRIPE_PRICE_ID_PRO:
+                subscription.plan = SubscriptionPlan.PRO
+            elif price_id == settings.STRIPE_PRICE_ID_TEAM:
+                subscription.plan = SubscriptionPlan.TEAM
+
             db.commit()
 
     elif event["type"] == "customer.subscription.updated":
