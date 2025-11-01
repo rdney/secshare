@@ -1,12 +1,24 @@
-FROM node:20-alpine
+# Build stage
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
 COPY . .
+RUN npm run build
 
-EXPOSE 5173
+# Production stage
+FROM node:20-alpine
 
-CMD ["npm", "run", "dev", "--", "--host"]
+WORKDIR /app
+
+# Install serve
+RUN npm install -g serve@14.2.4
+
+# Copy built files
+COPY --from=builder /app/dist ./dist
+
+# Use Railway's PORT variable
+CMD serve dist --single --listen ${PORT:-8080}
