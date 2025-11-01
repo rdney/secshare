@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Shield, Copy, CheckCircle } from 'lucide-react'
 import toast from 'react-hot-toast'

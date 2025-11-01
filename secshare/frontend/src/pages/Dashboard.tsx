@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { format } from 'date-fns'
-import { Copy, Trash2, Eye, Plus, ExternalLink } from 'lucide-react'
+import { Copy, Trash2, Eye, Plus } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../lib/api'
 
