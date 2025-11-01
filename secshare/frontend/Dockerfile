@@ -17,10 +17,8 @@ WORKDIR /app
 # Copy built files
 COPY --from=builder /app/dist ./dist
 
-# Install serve globally (create package.json first to avoid warnings)
-RUN echo '{}' > package.json && \
-    npm install -g serve@14.2.4 && \
-    rm package.json
+# Install serve globally
+RUN npm install --global serve@14.2.4
 
-# Use Railway's PORT variable
-CMD serve dist --single --listen ${PORT:-8080}
+# Use Railway's PORT variable with shell form to allow variable substitution
+CMD sh -c "serve dist --single --listen ${PORT:-8080}"
