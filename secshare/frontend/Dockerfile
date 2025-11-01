@@ -14,11 +14,13 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Install serve
-RUN npm install -g serve@14.2.4
-
 # Copy built files
 COPY --from=builder /app/dist ./dist
+
+# Install serve globally (create package.json first to avoid warnings)
+RUN echo '{}' > package.json && \
+    npm install -g serve@14.2.4 && \
+    rm package.json
 
 # Use Railway's PORT variable
 CMD serve dist --single --listen ${PORT:-8080}
